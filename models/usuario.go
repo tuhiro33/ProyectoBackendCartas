@@ -1,9 +1,14 @@
 package models
 
-import "gorm.io/gorm"
+import "time"
 
 type Usuario struct {
-	gorm.Model
-	Nombre string `json:"nombre"`
-	Email  string `json:"email" gorm:"unique"`
+	ID            uint `gorm:"primaryKey"`
+	RolID         uint
+	NombreUsuario string    `gorm:"size:100;not null"`
+	Email         string    `gorm:"size:150;unique;not null"`
+	Password      string    `gorm:"size:255;not null"`
+	FechaRegistro time.Time `gorm:"autoCreateTime"`
+
+	Rol Rol `gorm:"foreignKey:RolID"`
 }
