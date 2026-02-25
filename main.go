@@ -8,6 +8,7 @@ import (
 
 func main() {
 	config.ConectarDB()
+	config.MigrarModelos()
 
 	r := gin.Default()
 
