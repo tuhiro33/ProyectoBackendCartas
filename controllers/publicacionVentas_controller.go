@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"ProyectoGinBack/config"
+	"ProyectoGinBack/dto"
 	"ProyectoGinBack/models"
 
 	"github.com/gin-gonic/gin"
@@ -21,15 +22,18 @@ type CrearPublicacionRequest struct {
 func ObtenerPublicaciones(c *gin.Context) {
 	var publicaciones []models.PublicacionVenta
 
-	result := config.DB.Find(&publicaciones)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Error al obtener publicaciones",
-		})
-		return
+	config.DB.
+		Preload("Vendedor").
+		Preload("Coleccion").
+		Find(&publicaciones)
+
+	var response []dto.PublicacionResponse
+
+	for _, p := range publicaciones {
+		response = append(response, dto.MapPublicacionToDTO(p))
 	}
 
-	c.JSON(http.StatusOK, publicaciones)
+	c.JSON(http.StatusOK, response)
 }
 
 func ObtenerPublicacionPorID(c *gin.Context) {
@@ -37,7 +41,10 @@ func ObtenerPublicacionPorID(c *gin.Context) {
 
 	var publicacion models.PublicacionVenta
 
-	result := config.DB.First(&publicacion, id)
+	result := config.DB.
+		Preload("Vendedor").
+		Preload("Coleccion").
+		First(&publicacion, id)
 
 	if result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -46,7 +53,8 @@ func ObtenerPublicacionPorID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, publicacion)
+	response := dto.MapPublicacionToDTO(publicacion)
+	c.JSON(http.StatusOK, response)
 }
 
 func CrearPublicacion(c *gin.Context) {

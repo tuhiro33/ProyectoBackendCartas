@@ -17,10 +17,10 @@ func ConectarDB() {
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("❌ Error conectando a PostgreSQL:", err)
+		log.Fatal("Error conectando a PostgreSQL:", err)
 	}
 
-	log.Println("✅ Conectado a PostgreSQL")
+	log.Println("Conectado a PostgreSQL")
 }
 
 func MigrarModelos() {

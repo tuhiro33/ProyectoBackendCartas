@@ -17,7 +17,7 @@ func main() {
 		c.JSON(200, gin.H{"message": "pong"})
 	})
 
-	// 📌 NUEVA RUTA
+	//RUTAS
 	r.GET("/publicaciones", controllers.ObtenerPublicaciones)
 	r.POST("/publicaciones", controllers.CrearPublicacion)
 	r.GET("/publicaciones/:id", controllers.ObtenerPublicacionPorID)
