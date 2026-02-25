@@ -5,6 +5,7 @@ import (
 
 	"ProyectoGinBack/config"
 	"ProyectoGinBack/models"
+	"ProyectoGinBack/utils"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -83,8 +84,15 @@ func Login(c *gin.Context) {
 	}
 
 	// Login exitoso (sin JWT aún)
+	token, err := utils.GenerarToken(usuario.ID, usuario.RolID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error al generar el token",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Login exitoso",
-		"user_id": usuario.ID,
+		"token": token,
 	})
 }

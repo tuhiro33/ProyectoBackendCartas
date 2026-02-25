@@ -3,6 +3,7 @@ package main
 import (
 	"ProyectoGinBack/config"
 	"ProyectoGinBack/controllers"
+	"ProyectoGinBack/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,7 +20,11 @@ func main() {
 
 	//RUTAS
 	r.GET("/publicaciones", controllers.ObtenerPublicaciones)
-	r.POST("/publicaciones", controllers.CrearPublicacion)
+
+	auth := r.Group("/") //aca
+	auth.Use(middlewares.AuthMiddleware())
+	auth.POST("/publicaciones", controllers.CrearPublicacion) //aqui
+	//r.POST("/publicaciones", controllers.CrearPublicacion)    // este borrar
 	r.GET("/publicaciones/:id", controllers.ObtenerPublicacionPorID)
 
 	r.POST("/usuarios", controllers.CrearUsuario)
