@@ -22,5 +22,9 @@ func main() {
 	r.POST("/publicaciones", controllers.CrearPublicacion)
 	r.GET("/publicaciones/:id", controllers.ObtenerPublicacionPorID)
 
+	r.POST("/usuarios", controllers.CrearUsuario)
+	r.GET("/usuarios", controllers.ObtenerUsuarios)
+	r.POST("/login", controllers.Login)
+
 	r.Run(":8080")
 }

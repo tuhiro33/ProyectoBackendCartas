@@ -60,7 +60,7 @@ func ObtenerPublicacionPorID(c *gin.Context) {
 func CrearPublicacion(c *gin.Context) {
 	var req CrearPublicacionRequest
 
-	// 1️⃣ Leer JSON del body
+	// Leer JSON del body
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "Datos inválidos",
@@ -69,7 +69,7 @@ func CrearPublicacion(c *gin.Context) {
 		return
 	}
 
-	// 2️⃣ Crear modelo
+	// Crear modelo
 	publicacion := models.PublicacionVenta{
 		VendedorID:        req.VendedorID,
 		ColeccionID:       req.ColeccionID,
@@ -79,7 +79,7 @@ func CrearPublicacion(c *gin.Context) {
 		EstadoPublicacion: req.EstadoPublicacion,
 	}
 
-	// 3️⃣ Guardar en DB
+	// Guardar en DB
 	if err := config.DB.Create(&publicacion).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "No se pudo crear la publicación",
@@ -87,6 +87,6 @@ func CrearPublicacion(c *gin.Context) {
 		return
 	}
 
-	// 4️⃣ Responder
+	// Responder
 	c.JSON(http.StatusCreated, publicacion)
 }
