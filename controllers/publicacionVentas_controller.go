@@ -19,16 +19,22 @@ type CrearPublicacionRequest struct {
 	EstadoPublicacion string  `json:"estado_publicacion" binding:"required"`
 }
 
+type UpdatePublicacionRequest struct {
+	Precio      float64 `json:"precio"`
+	EstadoCarta string  `json:"estado_carta"`
+	FotoURL     string  `json:"foto_url"`
+}
+
 func ObtenerPublicaciones(c *gin.Context) {
 	var publicaciones []models.PublicacionVenta
 
 	config.DB.
+		Where("estado_publicacion = ?", "Activa").
 		Preload("Vendedor").
 		Preload("Coleccion").
 		Find(&publicaciones)
 
 	var response []dto.PublicacionResponse
-
 	for _, p := range publicaciones {
 		response = append(response, dto.MapPublicacionToDTO(p))
 	}
@@ -58,35 +64,141 @@ func ObtenerPublicacionPorID(c *gin.Context) {
 }
 
 func CrearPublicacion(c *gin.Context) {
-	var req CrearPublicacionRequest
+	var request struct {
+		ColeccionID uint    `json:"coleccion_id"`
+		Precio      float64 `json:"precio"`
+		EstadoCarta string  `json:"estado_carta"`
+		FotoURL     string  `json:"foto_url"`
+	}
 
-	// Leer JSON del body
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "Datos inválidos",
-			"detalle": err.Error(),
+			"error": "Datos inválidos",
 		})
 		return
 	}
 
-	// Crear modelo
+	userID := c.GetUint("user_id")
+
 	publicacion := models.PublicacionVenta{
-		VendedorID:        req.VendedorID,
-		ColeccionID:       req.ColeccionID,
-		Precio:            req.Precio,
-		EstadoCarta:       req.EstadoCarta,
-		FotoURL:           req.FotoURL,
-		EstadoPublicacion: req.EstadoPublicacion,
+		VendedorID:        userID,
+		ColeccionID:       request.ColeccionID,
+		Precio:            request.Precio,
+		EstadoCarta:       request.EstadoCarta,
+		FotoURL:           request.FotoURL,
+		EstadoPublicacion: "Activa",
 	}
 
-	// Guardar en DB
-	if err := config.DB.Create(&publicacion).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "No se pudo crear la publicación",
+	config.DB.Create(&publicacion)
+	c.JSON(http.StatusCreated, publicacion)
+
+}
+
+func ActualizarPublicacion(c *gin.Context) {
+	// ID de la publicación desde la URL
+	id := c.Param("id")
+
+	// Usuario autenticado desde el token
+	userID := c.GetUint("user_id")
+
+	// Buscar la publicación
+	var publicacion models.PublicacionVenta
+	if err := config.DB.First(&publicacion, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Publicación no encontrada",
 		})
 		return
 	}
 
-	// Responder
-	c.JSON(http.StatusCreated, publicacion)
+	// Verificar que sea el dueño
+	if publicacion.VendedorID != userID {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "No tienes permiso para modificar esta publicación",
+		})
+		return
+	}
+
+	// Bind del body
+	var request UpdatePublicacionRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Datos inválidos",
+		})
+		return
+	}
+
+	// Actualizar solo campos permitidos
+	publicacion.Precio = request.Precio
+	publicacion.EstadoCarta = request.EstadoCarta
+	publicacion.FotoURL = request.FotoURL
+
+	// Guardar cambios
+	if err := config.DB.Save(&publicacion).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error al actualizar la publicación",
+		})
+		return
+	}
+
+	// Respuesta
+	c.JSON(http.StatusOK, publicacion)
+}
+
+func EliminarPublicacion(c *gin.Context) {
+	// ID desde la URL
+	id := c.Param("id")
+
+	// Usuario desde el token
+	userID := c.GetUint("user_id")
+
+	// Buscar publicación
+	var publicacion models.PublicacionVenta
+	if err := config.DB.First(&publicacion, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Publicación no encontrada",
+		})
+		return
+	}
+
+	// Verificar dueño
+	if publicacion.VendedorID != userID {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "No tienes permiso para eliminar esta publicación",
+		})
+		return
+	}
+
+	// Borrado lógico
+	publicacion.EstadoPublicacion = "Eliminada"
+
+	if err := config.DB.Save(&publicacion).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error al eliminar la publicación",
+		})
+		return
+	}
+
+	// Respuesta
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Publicación eliminada correctamente",
+	})
+}
+
+func ObtenerMisPublicaciones(c *gin.Context) {
+	userID := c.GetUint("user_id")
+
+	var publicaciones []models.PublicacionVenta
+
+	config.DB.
+		Where("vendedor_id = ? AND estado_publicacion = ?", userID, "Activa").
+		Preload("Vendedor").
+		Preload("Coleccion").
+		Find(&publicaciones)
+
+	var response []dto.PublicacionResponse
+	for _, p := range publicaciones {
+		response = append(response, dto.MapPublicacionToDTO(p))
+	}
+
+	c.JSON(http.StatusOK, response)
 }

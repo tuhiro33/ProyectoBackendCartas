@@ -4,12 +4,18 @@ import (
 	"net/http"
 
 	"ProyectoGinBack/config"
+	"ProyectoGinBack/dto"
 	"ProyectoGinBack/models"
 	"ProyectoGinBack/utils"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type UpdateUsuarioRequest struct {
+	NombreUsuario string `json:"nombre_usuario"`
+	Email         string `json:"email"`
+}
 
 func CrearUsuario(c *gin.Context) {
 	var usuario models.Usuario
@@ -42,9 +48,17 @@ func CrearUsuario(c *gin.Context) {
 
 func ObtenerUsuarios(c *gin.Context) {
 	var usuarios []models.Usuario
-	config.DB.Find(&usuarios)
 
-	c.JSON(http.StatusOK, usuarios)
+	config.DB.
+		Preload("Rol").
+		Find(&usuarios)
+
+	var response []dto.UsuarioResponse
+	for _, u := range usuarios {
+		response = append(response, dto.MapUsuarioToDTO(u))
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func Login(c *gin.Context) {
@@ -94,5 +108,44 @@ func Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
+	})
+}
+
+func ActualizarUsuario(c *gin.Context) {
+	userID := c.GetUint("user_id")
+
+	var usuario models.Usuario
+	if err := config.DB.First(&usuario, userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Usuario no encontrado"})
+		return
+	}
+
+	var request UpdateUsuarioRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Datos inválidos"})
+		return
+	}
+
+	usuario.NombreUsuario = request.NombreUsuario
+	usuario.Email = request.Email
+
+	config.DB.Save(&usuario)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Usuario actualizado"})
+}
+
+func EliminarUsuario(c *gin.Context) {
+	userID := c.GetUint("user_id")
+
+	var usuario models.Usuario
+	if err := config.DB.First(&usuario, userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Usuario no encontrado"})
+		return
+	}
+
+	config.DB.Delete(&usuario)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Usuario eliminado correctamente",
 	})
 }
