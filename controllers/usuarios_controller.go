@@ -149,3 +149,40 @@ func EliminarUsuario(c *gin.Context) {
 		"message": "Usuario eliminado correctamente",
 	})
 }
+
+func Register(c *gin.Context) {
+
+	var request dto.RegisterRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Datos inválidos",
+		})
+		return
+	}
+
+	// verificar si email ya existe
+	var existingUser models.Usuario
+	if err := config.DB.Where("email = ?", request.Email).First(&existingUser).Error; err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "El email ya está registrado",
+		})
+		return
+	}
+
+	// hash del password
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
+
+	usuario := models.Usuario{
+		NombreUsuario: request.NombreUsuario,
+		Email:         request.Email,
+		Password:      string(hashedPassword),
+		RolID:         1, // vendedor por defecto
+	}
+
+	config.DB.Create(&usuario)
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Usuario registrado correctamente",
+	})
+}

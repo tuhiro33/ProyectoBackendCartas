@@ -34,13 +34,28 @@ func main() {
 
 	//RUTAS DE USUARIO ----------------------------------------------------------------
 	r.POST("/usuarios", controllers.CrearUsuario)
-	r.GET("/usuarios", controllers.ObtenerUsuarios)
+	//r.GET("/usuarios", controllers.ObtenerUsuarios)
 	auth.GET("/usuarios", controllers.ObtenerUsuarios)
 	auth.PUT("/usuarios", controllers.ActualizarUsuario)
 	auth.DELETE("/usuarios", controllers.EliminarUsuario)
 
 	//LOgin
 	r.POST("/login", controllers.Login)
+	//Register
+	r.POST("/register", controllers.Register)
+
+	// rutas públicas
+	r.GET("/roles", controllers.ObtenerRoles)
+
+	// rutas admin (protegidas)
+	admin := r.Group("/admin")
+	admin.Use(middlewares.AuthMiddleware()) // ya valida token
+	admin.Use(middlewares.RequireRoles(2))  // solo rol 2 = admin (ajusta el ID si es otro)
+	{
+		admin.POST("/roles", controllers.CrearRol)
+		admin.PUT("/roles/:id", controllers.ActualizarRol)
+		admin.DELETE("/roles/:id", controllers.EliminarRol)
+	}
 
 	r.Run(":8080")
 }
