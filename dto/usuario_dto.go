@@ -11,6 +11,7 @@ type UsuarioResponse struct {
 	Email         string    `json:"email"`
 	Rol           string    `json:"rol"`
 	FechaRegistro time.Time `json:"fecha_registro"`
+	FotoPerfil    string    `json:"foto_perfil"`
 }
 
 func MapUsuarioToDTO(u models.Usuario) UsuarioResponse {

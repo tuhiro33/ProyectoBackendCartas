@@ -10,11 +10,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type UpdateUsuarioRequest struct {
 	NombreUsuario string `json:"nombre_usuario"`
 	Email         string `json:"email"`
+	FotoPerfil    string `json:"foto_perfil"`
 }
 
 func CrearUsuario(c *gin.Context) {
@@ -126,8 +128,19 @@ func ActualizarUsuario(c *gin.Context) {
 		return
 	}
 
-	usuario.NombreUsuario = request.NombreUsuario
-	usuario.Email = request.Email
+	// usuario.NombreUsuario = request.NombreUsuario
+	// usuario.Email = request.Email
+	if request.NombreUsuario != "" {
+		usuario.NombreUsuario = request.NombreUsuario
+	}
+
+	if request.Email != "" {
+		usuario.Email = request.Email
+	}
+
+	if request.FotoPerfil != "" {
+		usuario.FotoPerfil = request.FotoPerfil
+	}
 
 	config.DB.Save(&usuario)
 
@@ -161,6 +174,12 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	// default de foto
+	foto := request.FotoPerfil
+	if foto == "" {
+		foto = "https://i.pravatar.cc/150?img=1"
+	}
+
 	// verificar si email ya existe
 	var existingUser models.Usuario
 	if err := config.DB.Where("email = ?", request.Email).First(&existingUser).Error; err == nil {
@@ -168,19 +187,36 @@ func Register(c *gin.Context) {
 			"error": "El email ya está registrado",
 		})
 		return
+	} else if err != gorm.ErrRecordNotFound {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error al verificar el usuario",
+		})
+		return
 	}
 
 	// hash del password
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error al procesar el password",
+		})
+		return
+	}
 
 	usuario := models.Usuario{
 		NombreUsuario: request.NombreUsuario,
 		Email:         request.Email,
 		Password:      string(hashedPassword),
-		RolID:         1, // vendedor por defecto
+		RolID:         1,
+		FotoPerfil:    foto,
 	}
 
-	config.DB.Create(&usuario)
+	if err := config.DB.Create(&usuario).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error al crear el usuario",
+		})
+		return
+	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Usuario registrado correctamente",
