@@ -222,3 +222,23 @@ func Register(c *gin.Context) {
 		"message": "Usuario registrado correctamente",
 	})
 }
+
+func GetProfile(c *gin.Context) {
+	userID := c.GetUint("user_id")
+
+	var usuario models.Usuario
+	if err := config.DB.
+		Preload("Rol").
+		First(&usuario, userID).Error; err != nil {
+
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Usuario no encontrado",
+		})
+		return
+	}
+
+	// Opcional: usar DTO si no quieres exponer password
+	response := dto.MapUsuarioToDTO(usuario)
+
+	c.JSON(http.StatusOK, response)
+}

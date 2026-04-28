@@ -47,6 +47,7 @@ func main() {
 	//RUTAS DE USUARIO ----------------------------------------------------------------
 	r.POST("/usuarios", controllers.CrearUsuario)
 	//r.GET("/usuarios", controllers.ObtenerUsuarios)
+	auth.GET("/me", controllers.GetProfile) //GetProfile
 	auth.GET("/usuarios", controllers.ObtenerUsuarios)
 	auth.PUT("/usuarios", controllers.ActualizarUsuario)
 	auth.DELETE("/usuarios", controllers.EliminarUsuario)
