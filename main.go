@@ -51,6 +51,15 @@ func main() {
 	auth.GET("/usuarios", controllers.ObtenerUsuarios)
 	auth.PUT("/usuarios", controllers.ActualizarUsuario)
 	auth.DELETE("/usuarios", controllers.EliminarUsuario)
+	// Colección
+	auth.POST("/cartas/sincronizar", controllers.SincronizarCarta)
+	auth.GET("/coleccion/:usuarioId", controllers.ObtenerColeccionUsuario)
+	auth.POST("/coleccion", controllers.AgregarAColeccion)
+	auth.DELETE("/coleccion/:id", controllers.EliminarDeColeccion)
+
+	// Transacciones
+	auth.POST("/transacciones", controllers.CrearTransaccion)
+	auth.GET("/transacciones/historial/:usuarioId", controllers.ObtenerHistorialCompras)
 
 	//LOgin
 	r.POST("/login", controllers.Login)
@@ -69,6 +78,8 @@ func main() {
 		admin.PUT("/roles/:id", controllers.ActualizarRol)
 		admin.DELETE("/roles/:id", controllers.EliminarRol)
 	}
+
+	r.POST("/upload", controllers.UploadImage)
 
 	r.Run(":8080")
 }

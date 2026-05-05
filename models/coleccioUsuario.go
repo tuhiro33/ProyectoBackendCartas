@@ -1,12 +1,10 @@
 package models
 
 type ColeccionUsuario struct {
-	ID         uint `gorm:"primaryKey"`
-	UsuarioID  uint
-	CartaApiID string `gorm:"size:100"`
-	Cantidad   int
-	EsFoil     bool
-
-	Usuario Usuario    `gorm:"foreignKey:UsuarioID"`
-	Carta   CartaCache `gorm:"foreignKey:CartaApiID;references:ApiID"`
+	ID         uint       `json:"id" gorm:"primaryKey"`
+	UsuarioID  uint       `json:"usuario_id"`
+	CartaApiID string     `json:"carta_api_id" gorm:"size:100"`
+	Cantidad   int        `json:"cantidad"`
+	EsFoil     bool       `json:"es_foil"`
+	Carta      CartaCache `json:"carta" gorm:"foreignKey:CartaApiID;references:ApiID"`
 }
