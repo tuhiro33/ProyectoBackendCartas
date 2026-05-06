@@ -17,6 +17,7 @@ type UpdateUsuarioRequest struct {
 	NombreUsuario string `json:"nombre_usuario"`
 	Email         string `json:"email"`
 	FotoPerfil    string `json:"foto_perfil"`
+	Password      string `json:"password"`
 }
 
 func CrearUsuario(c *gin.Context) {
@@ -140,6 +141,18 @@ func ActualizarUsuario(c *gin.Context) {
 
 	if request.FotoPerfil != "" {
 		usuario.FotoPerfil = request.FotoPerfil
+	}
+
+	if request.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword(
+			[]byte(request.Password),
+			bcrypt.DefaultCost,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al procesar password"})
+			return
+		}
+		usuario.Password = string(hashedPassword)
 	}
 
 	config.DB.Save(&usuario)

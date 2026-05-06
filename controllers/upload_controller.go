@@ -37,7 +37,7 @@ func UploadImage(c *gin.Context) {
 
 	// Inicializar Firebase
 	ctx := context.Background()
-	opt := option.WithCredentialsFile("config/firebase_credentials.json")
+	opt := option.WithCredentialsFile("config/Firebase_Credentials.json")
 	app, err := firebase.NewApp(ctx, nil, opt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error al conectar con Firebase"})
@@ -52,7 +52,7 @@ func UploadImage(c *gin.Context) {
 	}
 
 	// Obtener el bucket
-	bucket, err := client.DefaultBucket()
+	bucket, err := client.Bucket("proyectocartasbackfront-f5865.firebasestorage.app")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error al obtener bucket"})
 		return

@@ -21,5 +21,6 @@ func MapUsuarioToDTO(u models.Usuario) UsuarioResponse {
 		Email:         u.Email,
 		Rol:           u.Rol.Nombre,
 		FechaRegistro: u.FechaRegistro,
+		FotoPerfil:    u.FotoPerfil,
 	}
 }
