@@ -1,0 +1,10 @@
+# Credenciales Firebase - nunca subir a GitHub
+config/Firebase_Credentials.json
+
+# Variables de entorno
+.env
+
+# Binarios de Go
+*.exe
+*.out
+/tmp
