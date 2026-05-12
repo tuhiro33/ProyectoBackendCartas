@@ -27,11 +27,11 @@ type UpdatePublicacionRequest struct {
 
 func ObtenerPublicaciones(c *gin.Context) {
 	var publicaciones []models.PublicacionVenta
-
 	config.DB.
 		Where("estado_publicacion = ?", "Activa").
 		Preload("Vendedor").
 		Preload("Coleccion").
+		Preload("Coleccion.Carta").
 		Find(&publicaciones)
 
 	var response []dto.PublicacionResponse
@@ -185,14 +185,13 @@ func EliminarPublicacion(c *gin.Context) {
 }
 
 func ObtenerMisPublicaciones(c *gin.Context) {
-	userID := c.GetUint("user_id")
 
 	var publicaciones []models.PublicacionVenta
-
 	config.DB.
-		Where("vendedor_id = ? AND estado_publicacion = ?", userID, "Activa").
+		Where("estado_publicacion = ?", "Activa").
 		Preload("Vendedor").
 		Preload("Coleccion").
+		Preload("Coleccion.Carta"). // ← agregar este
 		Find(&publicaciones)
 
 	var response []dto.PublicacionResponse

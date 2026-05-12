@@ -22,8 +22,11 @@ type VendedorDTO struct {
 }
 
 type ColeccionDTO struct {
-	ID       uint `json:"id"`
-	Cantidad uint `json:"cantidad"`
+	ID          uint   `json:"id"`
+	Cantidad    uint   `json:"cantidad"`
+	CartaNombre string `json:"carta_nombre"`
+	CartaJuego  string `json:"carta_juego"`
+	CartaImagen string `json:"carta_imagen"`
 }
 
 func MapPublicacionToDTO(p models.PublicacionVenta) PublicacionResponse {
@@ -39,8 +42,11 @@ func MapPublicacionToDTO(p models.PublicacionVenta) PublicacionResponse {
 			Nombre: p.Vendedor.NombreUsuario,
 		},
 		Coleccion: ColeccionDTO{
-			ID:       p.Coleccion.ID,
-			Cantidad: uint(p.Coleccion.Cantidad),
+			ID:          p.Coleccion.ID,
+			Cantidad:    uint(p.Coleccion.Cantidad),
+			CartaNombre: p.Coleccion.Carta.Nombre, // ← Preload necesario
+			CartaJuego:  p.Coleccion.Carta.Juego,
+			CartaImagen: p.Coleccion.Carta.UrlImagen,
 		},
 	}
 }
