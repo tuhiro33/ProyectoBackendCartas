@@ -255,3 +255,22 @@ func GetProfile(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+// ObtenerPerfilPublico devuelve los datos básicos de cualquier usuario por su ID
+func ObtenerPerfilPublico(c *gin.Context) {
+	usuarioID := c.Param("usuarioId")
+
+	var usuario models.Usuario
+	// Buscamos al usuario cargando su rol
+	if err := config.DB.Preload("Rol").First(&usuario, usuarioID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "El usuario solicitado no existe",
+		})
+		return
+	}
+
+	// Usamos tu mapeador DTO existente para limpiar campos sensibles como la Password
+	response := dto.MapUsuarioToDTO(usuario)
+
+	c.JSON(http.StatusOK, response)
+}

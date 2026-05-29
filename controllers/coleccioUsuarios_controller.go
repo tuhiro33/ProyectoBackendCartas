@@ -85,3 +85,31 @@ func EliminarDeColeccion(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Carta eliminada de la colección con éxito"})
 }
+
+func ObtenerUsuariosConColeccion(c *gin.Context) {
+	type UsuarioSugerencia struct {
+		ID     uint   `json:"id"`
+		Nombre string `json:"nombre"` // Mantiene "nombre" en el JSON para el frontend
+	}
+
+	var usuarios []UsuarioSugerencia
+
+	// Cambiamos "usuarios.nombre" por "usuarios.nombre_usuario AS nombre"
+	// El "AS nombre" mapea de forma limpia la columna "nombre_usuario" de tu DB
+	// directamente al campo "Nombre" de tu estructura struct.
+	err := config.DB.Model(&models.Usuario{}).
+		Joins("JOIN coleccion_usuarios ON coleccion_usuarios.usuario_id = usuarios.id").
+		Where("coleccion_usuarios.cantidad > 0").
+		Distinct("usuarios.id", "usuarios.nombre_usuario AS nombre").
+		Find(&usuarios).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Error al consultar coleccionistas activos",
+			"detalle": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, usuarios)
+}

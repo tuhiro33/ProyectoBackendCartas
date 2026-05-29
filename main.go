@@ -60,6 +60,8 @@ func main() {
 	// Transacciones
 	auth.POST("/transacciones", controllers.CrearTransaccion)
 	auth.GET("/transacciones/historial/:usuarioId", controllers.ObtenerHistorialCompras)
+	// En tu archivo de rutas
+	r.PUT("/publicaciones/:id/vendida", middlewares.AuthMiddleware(), controllers.MarcarComoVendida)
 
 	//LOgin
 	r.POST("/login", controllers.Login)
@@ -68,6 +70,8 @@ func main() {
 
 	// rutas públicas
 	r.GET("/roles", controllers.ObtenerRoles)
+	r.GET("/usuarios/coleccionistas", controllers.ObtenerUsuariosConColeccion)
+	r.GET("/usuarios/perfil/:usuarioId", controllers.ObtenerPerfilPublico)
 
 	// rutas admin (protegidas)
 	admin := r.Group("/admin")
