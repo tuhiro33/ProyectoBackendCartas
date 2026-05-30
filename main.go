@@ -5,6 +5,7 @@ import (
 	"ProyectoGinBack/controllers"
 	"ProyectoGinBack/middlewares"
 	"log" // 1. Agrega este import nativo si no está
+	"os"
 
 	"time"
 
@@ -98,5 +99,12 @@ func main() {
 
 	r.POST("/upload", controllers.UploadImage)
 
-	r.Run(":8080")
+	//r.Run(":8080")
+	puerto := os.Getenv("PORT")
+	if puerto == "" {
+		puerto = "8080"
+	}
+
+	log.Printf("Servidor corriendo en el puerto %s", puerto)
+	r.Run(":" + puerto)
 }
