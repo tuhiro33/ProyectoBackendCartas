@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"os"
 
 	"ProyectoGinBack/models"
 
@@ -12,8 +13,17 @@ import (
 var DB *gorm.DB
 
 func ConectarDB() {
-	//dsn := "host=localhost user=postgres password=Nada123@ dbname=proyectocartones port=5432 sslmode=disable"
-	dsn := "host=localhost user=postgres password=qwerty1 dbname=proyectocartones port=5432 sslmode=disable"
+
+	dsn := os.Getenv("DATABASE_URL")
+
+	// 3. Respaldo local por si olvidas ponerla en desarrollo (así no se te rompe en tu PC)
+	if dsn == "" {
+		//dsn := "host=localhost user=postgres password=Nada123@ dbname=proyectocartones port=5432 sslmode=disable"
+		dsn := "host=localhost user=postgres password=qwerty1 dbname=proyectocartones port=5432 sslmode=disable"
+		log.Println("Conectando a la base de datos LOCAL...", dsn)
+	} else {
+		log.Println("Conectando a la base de datos de PRODUCCIÓN (Railway)...")
+	}
 
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
