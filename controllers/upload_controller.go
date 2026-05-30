@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -36,8 +37,25 @@ func UploadImage(c *gin.Context) {
 	}
 
 	// Inicializar Firebase
+	// ctx := context.Background()
+	// opt := option.WithCredentialsFile("config/Firebase_Credentials.json")
+	// app, err := firebase.NewApp(ctx, nil, opt)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "error al conectar con Firebase"})
+	// 	return
+	// }
+
 	ctx := context.Background()
-	opt := option.WithCredentialsFile("config/Firebase_Credentials.json")
+
+	// 1. Jalamos el texto del JSON directo desde las variables de entorno de Railway
+	firebaseJSON := os.Getenv("Firebase_Credentials")
+	if firebaseJSON == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Variable de entorno 'Firebase_Credentials' no configurada"})
+		return
+	}
+
+	// 2. Usamos WithCredentialsJSON en lugar de buscar un archivo físico
+	opt := option.WithCredentialsJSON([]byte(firebaseJSON))
 	app, err := firebase.NewApp(ctx, nil, opt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error al conectar con Firebase"})
